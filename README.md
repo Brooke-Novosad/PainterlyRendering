@@ -1,1 +1,1 @@
-# PainterlyRendering
+# Computational Photography

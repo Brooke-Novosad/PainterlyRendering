@@ -6,10 +6,11 @@ import os
 from scipy import signal
 import math
 
+# Styles from Painterly Rendering with Curved Brush Strokes of Multiple Sizes; Aaron Hertzmann
 styles = {
     'futurist': {
                 'threshold': 60,
-                'brush_radii': [8, 4, 2],
+                'brush_radii': [64, 32, 16],
                 'curvature_filter': 0.8,
                 'blur_factor': 0.4,
                 'gridsize': 1.,
@@ -57,14 +58,18 @@ class PaintRender:
         image = cv2.imread(filename)
         return image
     
+    # canvas = a new constant color image
     def initialize_canvas(self, image):
         self.canvas = np.zeros(image.shape, dtype=int)
-        self.canvas.fill(4534534245.)   # using this value as a placeholder to compare with our threshold
-
+        self.canvas.fill(4531783356.)   # using this value as a placeholder to compare with our threshold
+        
+    # function from pseudo code from Painterly Rendering with Curved Brush Strokes of Multiple Sizes; Aaron Hertzmann pg 2
     def paint(self, filename):
         brush_radii = self.style['brush_radii']
         self.initialize_canvas(self.image)
+        # for each brush size
         for r in brush_radii:
+            # compute a blurred reference image
             sigma_low = self.style['blur_factor']*r
             blur = self.gaussian_kernel(sigma_low, int(3*sigma_low))
             blurred_image = cv2.filter2D(self.image, -1, blur)
@@ -99,12 +104,15 @@ class PaintRender:
     def img_diff(self, blurred_image):
         return np.sqrt(np.sum((self.canvas-blurred_image)**2, axis=2))
     
+    # function from pseudo code from Stroke Based Painterly Rendering; David Vanderhaeghe, John Collomosse pg 10
     def apply_brush_strokes(self, blurred_image, brush_radii):
         lines = []
         
         width, height = blurred_image.shape[0], blurred_image.shape[1]
         diff = self.img_diff(blurred_image)
         gray = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2GRAY)
+        
+        # gradient direction calculation from papers
         self.sobelx = cv2.Sobel(gray,cv2.CV_64F,1,0,ksize=3)
         self.sobely = cv2.Sobel(gray,cv2.CV_64F,0,1,ksize=3)
         mag = np.abs(np.sqrt(self.sobelx**2 + self.sobely**2))
@@ -112,18 +120,28 @@ class PaintRender:
         
         rounded_width = (width // grid_length) * grid_length
         rounded_height = (height // grid_length) * grid_length
+        # foreach position (x; y) on a grid with spacing grid_length
         for x in range(0, rounded_width, grid_length):
-            for y in range(0, rounded_height, grid_length):        
+            for y in range(0, rounded_height, grid_length):     
+                # curr_diff is the region [x : grid/2...x + grid_length; y : grid/2...y+grid_length]
                 curr_diff = diff[x:x+grid_length, y:y+grid_length]
+                # err is Sigma curr_diff / grid_length squared
                 err = curr_diff.sum() / math.pow(grid_length, 2)
-                
+
+
+                # if refresh or err > threshold then 
+                # (x1; y1) = arg max(i; j)2* curr_diff
+                # paintStroke(x1; y1; Ip; Ri)
                 if err > self.style['threshold']:
+                    # argmax difference from Painterly Rendering for Video and Interaction; Aaron Hertzmann, Ken Perlin; pg 8
+                    # find the largest error point
                     bad_pixel_x, bad_pixel_y= np.unravel_index(np.argmax(curr_diff, axis=None), curr_diff.shape)
                     bad_pixel_x += x
                     bad_pixel_y += y
                     stroke = self.make_stroke(bad_pixel_x, bad_pixel_y, brush_radii, blurred_image, mag)
                     lines.append(stroke)
 
+        # paint all strokes in lines on the canvas, in random order
         randlines = random.sample(list(range(len(lines))), len(lines))
         self.canvas = (self.canvas).astype(np.uint8)
         for i in randlines:
@@ -140,7 +158,8 @@ class PaintRender:
         for i in range(1, len(line)):
             coords = line[i]
             cv2.circle(self.canvas,(coords[1], coords[0]), brush_radii, stroke_color, -1)
-
+            
+    # function from pseudo code from Painterly Rendering with Curved Brush Strokes of Multiple Sizes; Aaron Hertzmann pg 5
     def make_stroke(self, x, y, r, blurred_image, mag):
         width, height = blurred_image.shape[0], blurred_image.shape[1]
         if (x >= width) or (y >= height):
@@ -183,16 +202,17 @@ if __name__ == '__main__':
     
     input_sourcefile = str(sys.argv[1])
     input_style = str(sys.argv[2])
-    # for style in styles:
-    #     input_style = style
-    #     painter = PaintRender("input_images/"+input_sourcefile, style=input_style)
-    #     input_file_without_ext, extension = input_sourcefile.split(".")
-    #     output_filename = input_file_without_ext + "_" + input_style + "." + extension
-    #     painter.paint(output_filename)
  
     painter = PaintRender(
         "input_images/"+input_sourcefile, style=input_style)
     input_file_without_ext, extension = input_sourcefile.split(".")
     output_filename = input_file_without_ext + "_" + input_style + "." + extension
     painter.paint(output_filename)
+
+    # for style in styles:
+    #     input_style = style
+    #     painter = PaintRender("input_images/"+input_sourcefile, style=input_style)
+    #     input_file_without_ext, extension = input_sourcefile.split(".")
+    #     output_filename = input_file_without_ext + "_" + input_style + "." + extension
+    #     painter.paint(output_filename)
   

@@ -1,6 +1,7 @@
-# PaintRender - Artistic Image Renderer
+# Painterly Rendering
+## Non Photorealistic Rendering
 
-PaintRender is a Python-based artistic image renderer that turns input images into paintings using different styles. The code uses the OpenCV and NumPy libraries to process the images and apply artistic effects.
+Painterly Rendering is a Python-based artistic image renderer that transforms input images into paintings using the chosen style. Our code uses the OpenCV and NumPy libraries to process the images and apply artistic effects.
 
 ## Dependencies
 
@@ -12,12 +13,10 @@ PaintRender is a Python-based artistic image renderer that turns input images in
 
 There are two styles available in the current implementation:
 
-1. Minimalist
-2. Cubism
-3. Futurist
-4. Colorist Wash
-5. Expressionist
-6. Impressionist
+1. Futurist
+2. Colorist Wash
+3. Impressionist
+4. Pop Art
 
 ## Brief overview
 
@@ -32,13 +31,19 @@ The code uses a custom PaintRender class to perform the artistic rendering on an
 
 1. Install Python, OpenCV (cv2), and NumPy.
 2. Save the input image in the "input_images" folder.
-3. Choose the desired painting style (either 'minimalist' or 'cubism').
+3. Choose the desired painting style (colorist_wash, futurist, impressionist, pop_art).
 4. Run the code using the following command:
 
-   `python <executable> <path-to-input image> <chosen-style>`
+   `python main.py <name of input image> <chosen style>`
 
 5. The rendered image will be saved to the output_images directory.
 
 ## Citations
 
-This code is on the research outlined in [this](https://dl.acm.org/doi/pdf/10.1145/340916.340917 ) paper by Aaron Hertzmann Ken Perlin. The implementation relies on OpenCV for image processing and NumPy for numerical operations.
+This code is based on the research outlined in [this](https://dl.acm.org/doi/pdf/10.1145/340916.340917 ) paper by Aaron Hertzmann Ken Perlin. The algorithm uses the OpenCV for image processing and NumPy for numerical operations.
+
+## Collaborators
+* Brooke Novosad (novosad3)
+* Sanya Sharma (sanya3)
+* Sejal Sharma (sejal2)
+* Serena Trika (trika2)
